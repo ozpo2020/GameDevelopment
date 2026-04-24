@@ -1,0 +1,15 @@
+[gd_resource type="PlayerMotorConfig" load_steps=2 format=2]
+[ext_resource path="res://Scripts/Player/PlayerMotorConfig.cs" type="Script" id=1]
+
+[resource]
+max_speed = 126.0
+acceleration = 1120.0
+friction = 1280.0
+jump_velocity = -252.0
+gravity = 760.0
+fall_gravity_multiplier = 1.28
+coyote_time = 0.12
+jump_buffer_time = 0.13
+dash_speed = 292.0
+dash_time = 0.15
+dash_cooldown = 0.48

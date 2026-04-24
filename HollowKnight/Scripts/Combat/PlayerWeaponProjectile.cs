@@ -15,6 +15,25 @@ public partial class PlayerWeaponProjectile : Area2D
 	private int _pierceLeft = 2;
 	private float _pulse;
 	private PlayerWeaponKind _weapon = PlayerWeaponKind.Sword;
+	private Action<PlayerWeaponProjectile>? _returnToPool;
+
+	public void SetReturnCallback(Action<PlayerWeaponProjectile> callback)
+	{
+		_returnToPool = callback;
+	}
+
+	private void ReturnToPool()
+	{
+		_hitTargets.Clear();
+
+		if (_returnToPool != null)
+		{
+			_returnToPool(this);
+			return;
+		}
+
+		QueueFree();
+	}
 
 	public override void _Ready()
 	{
@@ -43,6 +62,10 @@ public partial class PlayerWeaponProjectile : Area2D
 		_life = weapon == PlayerWeaponKind.Hammer ? 0.72 : weapon == PlayerWeaponKind.Axe ? 0.88 : 0.95;
 		GlobalPosition = position;
 		Rotation = _direction.Angle();
+		Visible = true;
+		Monitoring = true;
+		SetPhysicsProcess(true);
+		_hitTargets.Clear();
 
 		if (GetChildCount() > 0 && GetChild(0) is CollisionShape2D shape && shape.Shape is RectangleShape2D rectangle)
 		{
@@ -58,7 +81,7 @@ public partial class PlayerWeaponProjectile : Area2D
 		_pulse += (float)delta * 18.0f;
 
 		if (_life <= 0.0)
-			QueueFree();
+			ReturnToPool();
 
 		QueueRedraw();
 	}
@@ -77,7 +100,7 @@ public partial class PlayerWeaponProjectile : Area2D
 		_pierceLeft--;
 
 		if (_pierceLeft <= 0)
-			QueueFree();
+			ReturnToPool();
 	}
 
 	public override void _Draw()

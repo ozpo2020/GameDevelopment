@@ -18,6 +18,7 @@ public partial class PlayerController : CharacterBody2D, ICombatFeedback
 	public int MaxFocus { get; private set; } = 9;
 	public string WeaponName => _combat?.WeaponName ?? "SWORD";
 	public string StateText => Animation?.CurrentState ?? "Booting";
+	public bool IsPerformingAttack => _slashTimer > 0.0;
 
 	private PlayerMotor _motor;
 	private PlayerCombat _combat;
@@ -34,6 +35,8 @@ public partial class PlayerController : CharacterBody2D, ICombatFeedback
 	private PlayerWeaponKind _slashWeapon = PlayerWeaponKind.Sword;
 	private double _airJumpFxTimer;
 	private int _airJumpFxFacing = 1;
+
+	public PlayerStateMachine StateMachine { get; private set; }
 
 	public override void _Ready()
 	{
@@ -74,6 +77,28 @@ public partial class PlayerController : CharacterBody2D, ICombatFeedback
 		_combat = new PlayerCombat { Name = "PlayerCombat" };
 		AddChild(_combat);
 		_combat.Initialize(this);
+		_combat.AttackStarted += OnAttackStarted;
+
+		StateMachine = new PlayerStateMachine { Name = "PlayerStateMachine" };
+		AddChild(StateMachine);
+		InitializePlayerStates();
+	}
+
+	private void InitializePlayerStates()
+	{
+		StateMachine.AddState(PlayerStateNames.Idle, new PlayerIdleState(this));
+		StateMachine.AddState(PlayerStateNames.Run, new PlayerRunState(this));
+		StateMachine.AddState(PlayerStateNames.Jump, new PlayerJumpState(this));
+		StateMachine.AddState(PlayerStateNames.Dash, new PlayerDashState(this));
+		StateMachine.AddState(PlayerStateNames.Attack, new PlayerAttackState(this));
+		StateMachine.AddState(PlayerStateNames.Hurt, new PlayerHurtState(this));
+		StateMachine.ChangeState(PlayerStateNames.Idle);
+	}
+
+
+	public override void _Process(double delta)
+	{
+		StateMachine.Update(delta);
 	}
 
 	public override void _PhysicsProcess(double delta)
@@ -81,6 +106,7 @@ public partial class PlayerController : CharacterBody2D, ICombatFeedback
 		if (Health.IsDead)
 			return;
 
+		StateMachine.PhysicsUpdate(delta);
 		_motor.Tick(delta);
 		_combat.Tick(delta);
 		_airJumpFxTimer = Mathf.Max(0.0, _airJumpFxTimer - delta);
@@ -93,6 +119,12 @@ public partial class PlayerController : CharacterBody2D, ICombatFeedback
 		UpdateAnimationState();
 		QueueRedraw();
 	}
+
+	public override void _Input(InputEvent @event)
+	{
+		StateMachine.HandleInput(@event);
+	}
+
 
 	public void RespawnAt(Vector2 position)
 	{
@@ -109,6 +141,7 @@ public partial class PlayerController : CharacterBody2D, ICombatFeedback
 	{
 		Knockback.Apply(info.Knockback);
 		Animation.SetState("Hurt");
+		StateMachine.ChangeState(PlayerStateNames.Hurt);
 		EmitSignal(SignalName.PlayerHurt, GlobalPosition);
 		QueueRedraw();
 	}
@@ -206,6 +239,7 @@ public partial class PlayerController : CharacterBody2D, ICombatFeedback
 	private void OnHealthChanged(int current, int maximum)
 	{
 		EmitSignal(SignalName.HealthChanged, current, maximum);
+		SignalBus.Instance?.EmitSignal(SignalBus.SignalName.PlayerHealthChanged, current, maximum);
 	}
 
 	private void OnDied()
@@ -214,10 +248,30 @@ public partial class PlayerController : CharacterBody2D, ICombatFeedback
 		EmitSignal(SignalName.PlayerDied);
 	}
 
+	private void OnAttackStarted()
+	{
+		StateMachine.ChangeState(PlayerStateNames.Attack);
+	}
+
 	private void UpdateAnimationState()
 	{
-		if (Animation.CurrentState == "Hurt" && Invincibility.IsInvincible)
+		if (StateMachine.CurrentStateName == PlayerStateNames.Hurt)
+		{
+			Animation.SetState("Hurt");
 			return;
+		}
+
+		if (StateMachine.CurrentStateName == PlayerStateNames.Attack)
+		{
+			Animation.SetState("Attack");
+			return;
+		}
+
+		if (StateMachine.CurrentStateName == PlayerStateNames.Dash)
+		{
+			Animation.SetState("Dash");
+			return;
+		}
 
 		if (_slashTimer > 0.0)
 			Animation.SetState("Attack");
