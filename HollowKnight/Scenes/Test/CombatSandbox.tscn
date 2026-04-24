@@ -1,3 +1,7 @@
-[gd_scene format=3 uid="uid://c541h66la28op"]
+[gd_scene load_steps=2 format=3]
 
-[node name="CombatSandbox" type="Node" unique_id=1434410243]
+[ext_resource type="Script" path="res://scripts/Core/GameRoot.cs" id="1"]
+
+[node name="CombatSandbox" type="Node2D"]
+script = ExtResource("1")
+

@@ -1,3 +1,7 @@
-[gd_scene format=3 uid="uid://dlsglo4f1jxph"]
+[gd_scene load_steps=2 format=3]
 
-[node name="MiniBoss01" type="Node" unique_id=1185082270]
+[ext_resource type="Script" path="res://scripts/Entities/MiniBoss01.cs" id="1"]
+
+[node name="MiniBoss_01" type="CharacterBody2D"]
+script = ExtResource("1")
+

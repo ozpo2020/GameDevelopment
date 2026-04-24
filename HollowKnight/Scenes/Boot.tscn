@@ -1,31 +1,7 @@
-[gd_scene format=3 uid="uid://cc0hq4glmtift"]
+[gd_scene load_steps=2 format=3]
 
-[ext_resource type="Texture2D" uid="uid://nja0yf0e2tp1" path="res://icon.svg" id="1_pthed"]
-[ext_resource type="Script" uid="uid://q3bvh8srit56" path="res://Scripts/Combat/Hurtbox.cs" id="2_0g2dh"]
-[ext_resource type="Script" uid="uid://dqg846ka52ov0" path="res://Scripts/Combat/Hitbox.cs" id="3_pbnua"]
+[ext_resource type="Script" path="res://scripts/Core/Boot.cs" id="1"]
 
-[node name="CharacterBody2D" type="CharacterBody2D" unique_id=2147442769]
+[node name="Boot" type="Node"]
+script = ExtResource("1")
 
-[node name="Sprite2D" type="Sprite2D" parent="." unique_id=784728503]
-position = Vector2(415, 262)
-texture = ExtResource("1_pthed")
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1766876792]
-
-[node name="Hurtbox" type="Area2D" parent="." unique_id=1924548161]
-visibility_layer = 0
-collision_layer = 8
-collision_mask = 0
-script = ExtResource("2_0g2dh")
-
-[node name="HurtboxCollision" type="CollisionShape2D" parent="Hurtbox" unique_id=680592649]
-
-[node name="Hitbox" type="Area2D" parent="." unique_id=8647100]
-visibility_layer = 0
-collision_layer = 2
-collision_mask = 8
-script = ExtResource("3_pbnua")
-
-[node name="HitboxCollision" type="CollisionShape2D" parent="Hitbox" unique_id=148644442]
-
-[node name="StateMachine" type="Node" parent="." unique_id=467656342]

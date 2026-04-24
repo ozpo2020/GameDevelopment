@@ -1,19 +1,50 @@
 using Godot;
 
-public partial class Hurtbox : Area2D
+public partial class Hurtbox : Area2D, IDamageable
 {
-	// 定义一个信号，让外部（比如血条、动画控制器）知道自己受伤了
-	[Signal] public delegate void ReceivedDamageEventHandler(int damage);
+    [Signal] public delegate void ReceivedDamageEventHandler(int amount, Vector2 knockback);
 
-	public void TakeDamage(int damage, Vector2 knockback)
-	{
-		// 1. 发射信号 (UI 或 逻辑层处理)
-		EmitSignal(SignalName.ReceivedDamage, damage);
-		
-		// 2. 打印调试信息（上线后删掉）
-		GD.Print($"受击盒收到伤害: {damage}");
-		
-		// 3. 可以在这里做一些“变红闪烁”或“击退”的处理
-		// GetParent<CharacterBody2D>().Velocity += knockback; 
-	}
+    [Export] public DamageTeam Team { get; set; } = DamageTeam.Neutral;
+    [Export] public float InvincibilityTime { get; set; } = 0.45f;
+
+    private HealthComponent _health;
+    private InvincibilityComponent _invincibility;
+
+    public override void _Ready()
+    {
+        Monitoring = true;
+        Monitorable = true;
+        CollisionLayer = CollisionLayers.Hurtbox;
+        CollisionMask = 0;
+
+        _health = GetParent()?.GetNodeOrNull<HealthComponent>("HealthComponent");
+        _invincibility = GetParent()?.GetNodeOrNull<InvincibilityComponent>("InvincibilityComponent");
+
+        if (GetChildCount() == 0)
+        {
+            var shape = new CollisionShape2D { Shape = new RectangleShape2D { Size = new Vector2(14, 22) } };
+            AddChild(shape);
+        }
+    }
+
+    public void Bind(HealthComponent health, InvincibilityComponent invincibility)
+    {
+        _health = health;
+        _invincibility = invincibility;
+    }
+
+    public void TakeDamage(DamageInfo info)
+    {
+        if (info.Team == Team || (_invincibility?.IsInvincible ?? false))
+            return;
+
+        _health?.ApplyDamage(info.Amount);
+        _invincibility?.Start(InvincibilityTime);
+
+        if (GetParent() is ICombatFeedback feedback)
+            feedback.OnDamageReceived(info);
+
+        EmitSignal(SignalName.ReceivedDamage, info.Amount, info.Knockback);
+    }
 }
+

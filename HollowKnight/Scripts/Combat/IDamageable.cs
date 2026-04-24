@@ -1,4 +1,6 @@
-// IDamageable.cs
-public interface IDamageable {
-    void TakeDamage(int damage, Vector2 knockback);
+public interface IDamageable
+{
+    DamageTeam Team { get; }
+    void TakeDamage(DamageInfo info);
 }
+

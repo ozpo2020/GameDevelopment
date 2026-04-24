@@ -1,3 +1,7 @@
-[gd_scene format=3 uid="uid://biwg5gka876bc"]
+[gd_scene load_steps=2 format=3]
 
-[node name="Node" type="Node" unique_id=1509442573]
+[ext_resource type="Script" path="res://scripts/Core/GameRoot.cs" id="1"]
+
+[node name="GameRoot" type="Node2D"]
+script = ExtResource("1")
+
