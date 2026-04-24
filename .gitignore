@@ -1,0 +1,18 @@
+# Godot 临时文件夹
+.godot/
+
+# C# 编译输出文件
+.bin/
+.obj/
+bin/
+obj/
+
+# 其它IDE配置
+.vs/
+.vscode/
+*.csproj.user
+*.sln.DotSettings
+
+# 系统文件
+.DS_Store
+Thumbs.db
