@@ -11,13 +11,20 @@ config_version=5
 [application]
 
 config/name="HollowKnight"
-run/main_scene="res://Scenes/mainScene.tscn"
+run/main_scene="res://Scenes/Boot.tscn"
 config/features=PackedStringArray("4.6", "GL Compatibility")
 config/icon="res://icon.svg"
 
 [dotnet]
 
 project/assembly_name="HollowKnight"
+
+[layer_names]
+
+2d_physics/layer_1="Player"
+2d_physics/layer_2="PlayerAttack"
+2d_physics/layer_3="Enemy"
+2d_physics/layer_4="EnemyHurtbox"
 
 [physics]
 
