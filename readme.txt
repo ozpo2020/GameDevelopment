@@ -7,3 +7,5 @@ vscode
 godot
 	配置vscode为外部编辑器
 	-编辑-文本编辑器-外部-高级设置
+Projects:
+	HollowKnight
