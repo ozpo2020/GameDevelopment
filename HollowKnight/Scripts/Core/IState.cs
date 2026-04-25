@@ -1,10 +1,9 @@
-using Godot;
-
+// IState.cs
 public interface IState
 {
     void Enter();
-    void Exit();
+    void HandleInput(InputEvent @event);
     void Update(double delta);
     void PhysicsUpdate(double delta);
-    void HandleInput(InputEvent @event);
+    void Exit();
 }

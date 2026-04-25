@@ -1,6 +1,4 @@
 using Godot;
-using System;
-using System.Collections.Generic;
 
 public partial class PlayerCombat : Node
 {
@@ -23,9 +21,6 @@ public partial class PlayerCombat : Node
     private PlayerWeaponKind _currentWeapon = PlayerWeaponKind.Sword;
     private PlayerWeaponKind _pendingWeapon = PlayerWeaponKind.Sword;
     private Vector2 _lastAttackDirection = Vector2.Right;
-    private readonly Queue<PlayerWeaponProjectile> _projectilePool = new();
-
-    public event Action? AttackStarted;
 
     public string WeaponName => _currentWeapon switch
     {
@@ -59,10 +54,7 @@ public partial class PlayerCombat : Node
 
         UpdateWeaponSelection();
 
-        var stateName = _player.StateMachine.CurrentStateName;
-        var combatInputAllowed = stateName != PlayerStateNames.Dash && stateName != PlayerStateNames.Hurt;
-
-        if (combatInputAllowed && Input.IsActionJustPressed(InputBindings.Attack))
+        if (Input.IsActionJustPressed(InputBindings.Attack))
         {
             _attackBuffered = true;
             _attackBufferTimer = AttackBufferTime;
@@ -82,7 +74,7 @@ public partial class PlayerCombat : Node
                 ActivatePendingHitbox();
         }
 
-        if (combatInputAllowed && Input.IsActionJustPressed(InputBindings.Interact) && TryCastSpiritBlade())
+        if (Input.IsActionJustPressed(InputBindings.Interact) && TryCastSpiritBlade())
             return;
 
         if (_cooldown > 0.0 || _pendingHit || !_attackBuffered)
@@ -109,7 +101,6 @@ public partial class PlayerCombat : Node
         _cooldown = _pendingProfile.Cooldown;
         _comboTimer = ComboResetTime;
         _player.StartSlash(direction, _pendingComboStep, _pendingWeapon);
-        AttackStarted?.Invoke();
     }
 
     private bool TryCastSpiritBlade()
@@ -130,28 +121,10 @@ public partial class PlayerCombat : Node
         return true;
     }
 
-    private PlayerWeaponProjectile AcquireProjectile()
-    {
-        if (_projectilePool.TryDequeue(out var projectile))
-            return projectile;
-
-        projectile = new PlayerWeaponProjectile();
-        projectile.SetReturnCallback(ReturnProjectileToPool);
-        _player.GetParent()?.AddChild(projectile);
-        return projectile;
-    }
-
-    private void ReturnProjectileToPool(PlayerWeaponProjectile projectile)
-    {
-        projectile.Visible = false;
-        projectile.Monitoring = false;
-        projectile.SetPhysicsProcess(false);
-        _projectilePool.Enqueue(projectile);
-    }
-
     private void SpawnSpiritBlade(Vector2 direction)
     {
-        var projectile = AcquireProjectile();
+        var projectile = new PlayerWeaponProjectile();
+        _player.GetParent()?.AddChild(projectile);
         var offset = direction * 20.0f + new Vector2(0, -8);
         projectile.Configure(_player, _player.GlobalPosition + offset, direction, _currentWeapon);
     }

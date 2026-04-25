@@ -2,9 +2,17 @@ using Godot;
 
 public partial class PlayerMotor : Node
 {
-	[Export] public PlayerMotorConfig Settings { get; set; } = new PlayerMotorConfig();
-
-	private PlayerMotorConfig Config => Settings ??= new PlayerMotorConfig();
+	[Export] public float MaxSpeed { get; set; } = 126.0f;
+	[Export] public float Acceleration { get; set; } = 1120.0f;
+	[Export] public float Friction { get; set; } = 1280.0f;
+	[Export] public float JumpVelocity { get; set; } = -252.0f;
+	[Export] public float Gravity { get; set; } = 760.0f;
+	[Export] public float FallGravityMultiplier { get; set; } = 1.28f;
+	[Export] public float CoyoteTime { get; set; } = 0.12f;
+	[Export] public float JumpBufferTime { get; set; } = 0.13f;
+	[Export] public float DashSpeed { get; set; } = 292.0f;
+	[Export] public float DashTime { get; set; } = 0.15f;
+	[Export] public float DashCooldown { get; set; } = 0.48f;
 
 	private PlayerController _player;
 	private PlayerAbilities _abilities;
@@ -35,7 +43,7 @@ public partial class PlayerMotor : Node
 
 		if (_player.IsOnFloor())
 		{
-			_coyoteTimer = Config.CoyoteTime;
+			_coyoteTimer = CoyoteTime;
 			_usedDoubleJump = false;
 		}
 		else
@@ -43,30 +51,27 @@ public partial class PlayerMotor : Node
 			_coyoteTimer = Mathf.Max(0.0, _coyoteTimer - delta);
 		}
 
-		var stateName = _player.StateMachine.CurrentStateName;
-		var actionLocked = stateName == PlayerStateNames.Attack || stateName == PlayerStateNames.Hurt;
-
-		if (!actionLocked && Input.IsActionJustPressed(InputBindings.Jump))
-			_jumpBufferTimer = Config.JumpBufferTime;
+		if (Input.IsActionJustPressed(InputBindings.Jump))
+			_jumpBufferTimer = JumpBufferTime;
 
 		if (_dashTimer > 0.0)
 		{
-			velocity.X = _player.Facing * Config.DashSpeed;
+			velocity.X = _player.Facing * DashSpeed;
 			velocity.Y = 0.0f;
 		}
 		else
 		{
-			var targetX = inputX * Config.MaxSpeed;
-			var rate = Mathf.Abs(targetX) > 0.01f ? Config.Acceleration : Config.Friction;
+			var targetX = inputX * MaxSpeed;
+			var rate = Mathf.Abs(targetX) > 0.01f ? Acceleration : Friction;
 			velocity.X = Mathf.MoveToward(velocity.X, targetX, rate * dt);
 
-			var gravity = velocity.Y > 0.0f ? Config.Gravity * Config.FallGravityMultiplier : Config.Gravity;
+			var gravity = velocity.Y > 0.0f ? Gravity * FallGravityMultiplier : Gravity;
 			velocity.Y += gravity * dt;
 
 			if (_jumpBufferTimer > 0.0 && CanJump())
 			{
 				var isAirJump = _coyoteTimer <= 0.0;
-				velocity.Y = isAirJump ? Config.JumpVelocity * 0.94f : Config.JumpVelocity;
+				velocity.Y = isAirJump ? JumpVelocity * 0.94f : JumpVelocity;
 				_jumpBufferTimer = 0.0;
 
 				if (isAirJump)
@@ -80,11 +85,11 @@ public partial class PlayerMotor : Node
 			if (Input.IsActionJustReleased(InputBindings.Jump) && velocity.Y < -70.0f)
 				velocity.Y = -70.0f;
 
-			if (!actionLocked && CanDash && Input.IsActionJustPressed(InputBindings.Dash))
+			if (CanDash && Input.IsActionJustPressed(InputBindings.Dash))
 			{
-				_dashTimer = Config.DashTime;
-				_dashCooldownTimer = Config.DashCooldown;
-				velocity = new Vector2(_player.Facing * Config.DashSpeed, 0.0f);
+				_dashTimer = DashTime;
+				_dashCooldownTimer = DashCooldown;
+				velocity = new Vector2(_player.Facing * DashSpeed, 0.0f);
 				_player.Invincibility.Start(0.14f);
 			}
 		}
