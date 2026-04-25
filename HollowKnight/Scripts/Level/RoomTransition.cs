@@ -31,7 +31,7 @@ public partial class RoomTransition : Area2D
     private void OnBodyEntered(Node2D body)
     {
         if (body is PlayerController)
-            Callable.From(() => _root.TransitionTo(_targetRoom, _targetSpawn)).CallDeferred();
+            _root.TransitionTo(_targetRoom, _targetSpawn);
     }
 
     public override void _Draw()

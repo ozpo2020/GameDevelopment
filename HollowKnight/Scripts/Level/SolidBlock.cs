@@ -12,14 +12,7 @@ public partial class SolidBlock : StaticBody2D
         Position = rect.Position + rect.Size * 0.5f;
         CollisionLayer = CollisionLayers.World;
         CollisionMask = CollisionLayers.PlayerBody | CollisionLayers.EnemyBody;
-        var newBlock = new CollisionShape2D 
-        { 
-            Shape = new RectangleShape2D 
-            { 
-                Size = rect.Size 
-            } 
-        };
-        AddChild.CallDeferred(newBlock);
+        AddChild(new CollisionShape2D { Shape = new RectangleShape2D { Size = rect.Size } });
         QueueRedraw();
     }
 
