@@ -1,0 +1,8 @@
+.godot/
+.import/
+bin/
+obj/
+.dotnet_home/
+.appdata/
+.userprofile/
+.nuget/
